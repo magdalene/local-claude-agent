@@ -162,3 +162,7 @@ contract".
 Rebuild the image (`docker build -t local-claude-agent:latest .`) after editing
 `Dockerfile` or `docker/run_task.py` — the orchestrator does not do this for
 you.
+
+## License
+
+MIT — see `LICENSE`.
