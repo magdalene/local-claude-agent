@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.example.agent</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/path/to/workspace/local-claude-agent/.venv/bin/python3</string>
+        <string>-m</string>
+        <string>orchestrator.main</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/path/to/workspace/local-claude-agent</string>
+
+    <!-- Ticks every 15 minutes. GitHub Actions has issue/PR-comment triggers
+         for responsiveness; locally, a tighter poll interval is the
+         substitute -- widen StartInterval (seconds) if 15m proves too eager
+         for your usage budget. -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <key>StandardOutPath</key>
+    <string>/path/to/workspace/local-claude-agent/logs/launchd.out.log</string>
+    <key>StandardErrorPath</key>
+    <string>/path/to/workspace/local-claude-agent/logs/launchd.err.log</string>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/usr/local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Not RunAtLoad: the first tick after `launchctl load` fires at the
+         next interval boundary, not immediately. Run a manual tick yourself
+         first (see README) to sanity check before trusting the schedule. -->
+</dict>
+</plist>

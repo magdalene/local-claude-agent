@@ -1,0 +1,59 @@
+# Paths are absolute so they resolve identically on the host and inside the
+# container (the container bind-mounts `workspace_root` at this same path).
+#
+# Expected layout: this repo and each target repo are siblings under
+# `workspace_root`, e.g.
+#   /path/to/workspace/local-claude-agent   (this repo)
+#   /path/to/workspace/backend
+#   /path/to/workspace/frontend
+workspace_root: /path/to/workspace
+
+# The repo names `backend` and `frontend` are currently hardcoded in
+# orchestrator/issue.py (AREAS) and orchestrator/docs_sync.py / main.py
+# (backend docs/ is synced into frontend worktrees). Change those too if your
+# repos differ.
+repos:
+  backend:
+    path: /path/to/workspace/backend
+    worktrees_dir: /path/to/workspace/backend-worktrees
+    agent_rules: /path/to/workspace/backend/AGENT_RULES.md
+    default_branch: main
+    # Shell string, run from inside the worktree before invoking claude. No
+    # venv: the container is a throwaway environment per run, so installing
+    # straight into it is fine and one less thing to get wrong.
+    # --break-system-packages: the container's Python is Debian-managed
+    # (PEP 668) and this is a throwaway environment anyway, so there's
+    # nothing to protect by using a venv here.
+    install_cmd: "pip install -q --break-system-packages -r requirements-dev.txt"
+    # Optional free-text hint about how tests are configured.
+    test_settings_note: "DJANGO_SETTINGS_MODULE=api.test_settings (sqlite) — see pytest.ini"
+    # Extra env vars for the container, per repo. Useful when the repo's
+    # default settings point at real services: setting it here means the
+    # agent doesn't have to prefix every command with VAR=..., which breaks
+    # the Bash allowlist match in docker/run_task.py.
+    env:
+      DJANGO_SETTINGS_MODULE: api.test_settings
+  frontend:
+    path: /path/to/workspace/frontend
+    worktrees_dir: /path/to/workspace/frontend-worktrees
+    agent_rules: /path/to/workspace/frontend/AGENT_RULES.md
+    default_branch: main
+    install_cmd: "npm ci"
+
+issues_dir: /path/to/workspace/local-claude-agent/issues
+general_rules: /path/to/workspace/local-claude-agent/AGENT_RULES.md
+lock_file: /path/to/workspace/local-claude-agent/logs/agent.lock
+log_dir: /path/to/workspace/local-claude-agent/logs
+
+docker_image: local-claude-agent:latest
+max_attempts: 3
+# A real ticket can take well over 100 turns: the definition of done alone can
+# mean several full test runs plus linters, on top of the actual
+# implementation turns. container_timeout_minutes is the real cost backstop;
+# raise this if attempts keep dying with "Reached max turns" in the log rather
+# than a real error.
+max_turns: 200
+container_timeout_minutes: 45
+
+# Branch prefix for agent work, e.g. agent/17-fix-timezone-bug
+branch_prefix: "agent/"

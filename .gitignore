@@ -1,0 +1,7 @@
+logs/*
+!logs/.gitkeep
+.env
+__pycache__/
+*.pyc
+.venv/
+.idea/
